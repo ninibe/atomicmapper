@@ -3,11 +3,11 @@
 Once you have `gen` installed, find the folder with the target type and install the typewriter
 
 ```
-cd
+cd src/mypackage
 gen add github.com/ninibe/atomicmapper/gen
 ```
 
-This creates a `_gen.go` file that you can remove after generation.
+This creates a `_gen.go` file that you can remove after the generation.
 Set the tag over your target type.
 
 ```go
