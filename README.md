@@ -32,7 +32,7 @@ This will create a new `foo_atomicmap.go` file ready to use.
 ```go
 fooMap := NewFooAtomicMap()
 fooMap.Set("myKey", &Foo{}) // save pointer to Foo
-foo := fooMap.Get("myKey")  // retrieve pointer
+foo, ok := fooMap.Get("myKey")  // retrieve pointer
 fooMap.Delete("myKey")      // remove pointer from map
 ```
 

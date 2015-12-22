@@ -95,8 +95,14 @@ func New{{.Name}}AtomicMap() *{{.Name}}AtomicMap {
 }
 
 // Get returns a {{if .Pointer}}pointer to {{end}}{{.Name}} for a given key
-func (am *{{.Name}}AtomicMap) Get(key string) {{.Pointer}}{{.Name}} {
-	return am.val.Load().(_{{.Name}}Map)[key]
+func (am *{{.Name}}AtomicMap) Get(key string) (value {{.Pointer}}{{.Name}}, ok bool) {
+	value, ok = am.val.Load().(_{{.Name}}Map)[key]
+	return value, ok
+}
+
+// Len returns the number of elements in the map
+func (am *TypeAtomicMap) Len() int {
+	return len(am.val.Load().(_{{.Name}}Map))
 }
 
 // Set inserts in the map a {{if .Pointer}}pointer to {{end}}{{.Name}} under a given key

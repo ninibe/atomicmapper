@@ -20,20 +20,25 @@ func TestAtomicMap(t *testing.T) {
 			aMap.Set(d.S, &d)
 
 			fakeKey := randStr()
-			fake := aMap.Get(fakeKey)
-			if fake != nil {
+			fake, ok := aMap.Get(fakeKey)
+			if fake != nil || ok {
 				t.Errorf("found non-existing key %s\n", fakeKey)
 			}
 
-			back := aMap.Get(d.S)
-			if back.S != d.S {
+			back, ok := aMap.Get(d.S)
+			if back.S != d.S || !ok {
 				t.Errorf("Invalid key returned actual: %s expected: %s\n", back.S, d.S)
+			}
+
+			len := aMap.Len()
+			if len < 1 || len > setSize {
+				t.Errorf("Impossible map length: %d", len)
 			}
 
 			aMap.Delete(d.S)
 
-			back = aMap.Get(d.S)
-			if back != nil {
+			back, ok = aMap.Get(d.S)
+			if back != nil || ok {
 				t.Errorf("found deleted key %s\n", back.S)
 			}
 

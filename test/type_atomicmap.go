@@ -24,8 +24,14 @@ func NewTypeAtomicMap() *TypeAtomicMap {
 }
 
 // Get returns a pointer to Type for a given key
-func (am *TypeAtomicMap) Get(key string) *Type {
-	return am.val.Load().(_TypeMap)[key]
+func (am *TypeAtomicMap) Get(key string) (value *Type, ok bool) {
+	value, ok = am.val.Load().(_TypeMap)[key]
+	return value, ok
+}
+
+// Len returns the number of elements in the map
+func (am *TypeAtomicMap) Len() int {
+	return len(am.val.Load().(_TypeMap))
 }
 
 // Set inserts in the map a pointer to Type under a given key
