@@ -35,7 +35,7 @@ func main() {
 	nameParts := strings.Split(*name, ".")
 	Name = nameParts[len(nameParts)-1]
 	if len(nameParts) > 1 {
-		FullPackage := strings.Join(nameParts[:len(nameParts)-1], "")
+		FullPackage := strings.Join(nameParts[:len(nameParts)-1], ".")
 		Imports = append(Imports, FullPackage)
 		packParts := strings.Split(FullPackage, "/")
 		Subpackage = packParts[len(packParts)-1]
