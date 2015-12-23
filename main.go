@@ -10,10 +10,12 @@ import (
 	"text/template"
 )
 
-var name = flag.String("type", "", "[required] type to store in the map")
-var point = flag.Bool("pointer", false, "store and retrieve pointers to the type")
-var out = flag.String("out", "", "output file name")
-var pack = flag.String("package", "", "go package of the new file")
+var (
+	name  = flag.String("type", "", "[required] type to store in the map")
+	point = flag.Bool("pointer", false, "store and retrieve pointers to the type")
+	out   = flag.String("out", "", "output file name")
+	pack  = flag.String("package", "", "go package of the new file")
+)
 
 func main() {
 	log.SetFlags(0)
@@ -25,14 +27,23 @@ func main() {
 		os.Exit(2)
 	}
 
-	tmpl, err := template.New("mapper").Parse(MapTPL)
-	if err != nil {
-		log.Fatalln(err.Error())
+	var Imports []string = []string{"sync", "sync/atomic"}
+
+	var Name string
+	var Subpackage string
+
+	nameParts := strings.Split(*name, ".")
+	Name = nameParts[len(nameParts)-1]
+	if len(nameParts) > 1 {
+		FullPackage := strings.Join(nameParts[:len(nameParts)-1], "")
+		Imports = append(Imports, FullPackage)
+		packParts := strings.Split(FullPackage, "/")
+		Subpackage = packParts[len(packParts)-1]
 	}
 
 	outName := *out
 	if outName == "" {
-		outName = fmt.Sprintf("%s_atomicmap.go", strings.ToLower(*name))
+		outName = fmt.Sprintf("%s_atomicmap.go", strings.ToLower(Name))
 	}
 
 	packName := os.Getenv("GOPACKAGE")
@@ -41,40 +52,61 @@ func main() {
 	}
 
 	if packName == "" {
-		here, _ := filepath.Abs(flag.Args()[0])
+		here, _ := filepath.Abs(os.Args[0])
 		packName = filepath.Base(filepath.Dir(here))
 	}
 
 	f, err := os.Create(outName)
-	if err != nil {
-		log.Fatalln(err.Error())
-	}
-
-	f.WriteString("// generated file - DO NOT EDIT\n\n\n")
+	fatalIf(err)
+	f.WriteString("// generated file - DO NOT EDIT\n")
+	f.WriteString("// command: " + strings.Join(os.Args, " ") + "\n\n\n")
 	f.WriteString("package " + packName + "\n")
-	f.WriteString(ImportTPL)
+
+	tmplImp, err := template.New("imports").Parse(ExtImportTPL)
+	fatalIf(err)
+	err = tmplImp.Execute(f, Imports)
+	fatalIf(err)
+
+	tmpl, err := template.New("mapper").Parse(MapTPL)
+	fatalIf(err)
 
 	var Pointer string
 	if *point {
 		Pointer = "*"
 	}
 
+	if Subpackage != "" {
+		Subpackage += "."
+	}
+
 	err = tmpl.Execute(f, struct {
-		Name string
-		Pointer string
+		Name       string
+		Pointer    string
+		Subpackage string
 	}{
-		Name: *name,
-		Pointer: Pointer,
+		Name:       Name,
+		Pointer:    Pointer,
+		Subpackage: Subpackage,
 	})
+	fatalIf(err)
+}
+
+func fatalIf(err error) {
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
 }
 
-const ImportTPL = `
+const MinImportTPL = `
 import (
 	"sync"
 	"sync/atomic"
+)
+`
+
+const ExtImportTPL = `
+import ({{ range $key, $value := . }}
+	"{{ $value }}"{{ end }}
 )
 `
 
@@ -85,7 +117,7 @@ type {{.Name}}AtomicMap struct {
 	val atomic.Value
 }
 
-type _{{.Name}}Map map[string]{{.Pointer}}{{.Name}}
+type _{{.Name}}Map map[string]{{.Pointer}}{{.Subpackage}}{{.Name}}
 
 // New{{.Name}}AtomicMap returns a new initialized {{.Name}}AtomicMap
 func New{{.Name}}AtomicMap() *{{.Name}}AtomicMap {
@@ -95,18 +127,18 @@ func New{{.Name}}AtomicMap() *{{.Name}}AtomicMap {
 }
 
 // Get returns a {{if .Pointer}}pointer to {{end}}{{.Name}} for a given key
-func (am *{{.Name}}AtomicMap) Get(key string) (value {{.Pointer}}{{.Name}}, ok bool) {
+func (am *{{.Name}}AtomicMap) Get(key string) (value {{.Pointer}}{{.Subpackage}}{{.Name}}, ok bool) {
 	value, ok = am.val.Load().(_{{.Name}}Map)[key]
 	return value, ok
 }
 
 // Len returns the number of elements in the map
-func (am *TypeAtomicMap) Len() int {
+func (am *{{.Name}}AtomicMap) Len() int {
 	return len(am.val.Load().(_{{.Name}}Map))
 }
 
 // Set inserts in the map a {{if .Pointer}}pointer to {{end}}{{.Name}} under a given key
-func (am *{{.Name}}AtomicMap) Set(key string, value {{.Pointer}}{{.Name}}) {
+func (am *{{.Name}}AtomicMap) Set(key string, value {{.Pointer}}{{.Subpackage}}{{.Name}}) {
 	am.mu.Lock()
 	defer am.mu.Unlock()
 

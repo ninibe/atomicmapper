@@ -1,4 +1,5 @@
 // generated file - DO NOT EDIT
+// command: atomicmapper -pointer -type Type
 
 
 package test
