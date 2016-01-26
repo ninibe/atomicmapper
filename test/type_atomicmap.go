@@ -1,7 +1,6 @@
 // generated file - DO NOT EDIT
 // command: atomicmapper -pointer -type Type
 
-
 package test
 
 import (
@@ -28,6 +27,13 @@ func NewTypeAtomicMap() *TypeAtomicMap {
 func (am *TypeAtomicMap) Get(key string) (value *Type, ok bool) {
 	value, ok = am.val.Load().(_TypeMap)[key]
 	return value, ok
+}
+
+// GetAll returns the underlying map of pointers to Type
+// this map must NOT be modified, to change the map safely use the Set and Delete
+// functions and Get the value again
+func (am *TypeAtomicMap) GetAll() map[string]*Type {
+	return am.val.Load().(_TypeMap)
 }
 
 // Len returns the number of elements in the map

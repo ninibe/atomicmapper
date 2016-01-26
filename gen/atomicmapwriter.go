@@ -70,6 +70,13 @@ func (am *{{.Name}}AtomicMap) Get(key string) (value {{.Pointer}}{{.Name}}, ok b
 	return value, ok
 }
 
+// GetAll returns the underlying map of {{if .Pointer}}pointers to {{end}}{{.Name}}
+// this map must NOT be modified, to change the map safely use the Set and Delete
+// functions and Get the value again
+func (am *{{.Name}}AtomicMap) GetAll() map[string]{{.Pointer}}{{.Name}} {
+	return am.val.Load().(_{{.Name}}Map)
+}
+
 // Len returns the number of elements in the map
 func (am *{{.Name}}AtomicMap) Len() int {
 	return len(am.val.Load().(_{{.Name}}Map))

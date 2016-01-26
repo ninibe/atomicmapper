@@ -30,9 +30,14 @@ func TestAtomicMap(t *testing.T) {
 				t.Errorf("Invalid key returned actual: %s expected: %s\n", back.S, d.S)
 			}
 
-			len := aMap.Len()
-			if len < 1 || len > setSize {
-				t.Errorf("Impossible map length: %d", len)
+			length := aMap.Len()
+			if length < 1 || length > setSize {
+				t.Errorf("Impossible map length: %d", length)
+			}
+
+			length = len(aMap.GetAll())
+			if length < 1 || length > setSize {
+				t.Errorf("Impossible number of elements: %d", length)
 			}
 
 			aMap.Delete(d.S)

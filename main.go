@@ -59,7 +59,7 @@ func main() {
 	f, err := os.Create(outName)
 	fatalIf(err)
 	f.WriteString("// generated file - DO NOT EDIT\n")
-	f.WriteString("// command: " + strings.Join(os.Args, " ") + "\n\n\n")
+	f.WriteString("// command: " + strings.Join(os.Args, " ") + "\n\n")
 	f.WriteString("package " + packName + "\n")
 
 	tmplImp, err := template.New("imports").Parse(ExtImportTPL)
@@ -130,6 +130,13 @@ func New{{.Name}}AtomicMap() *{{.Name}}AtomicMap {
 func (am *{{.Name}}AtomicMap) Get(key string) (value {{.Pointer}}{{.Subpackage}}{{.Name}}, ok bool) {
 	value, ok = am.val.Load().(_{{.Name}}Map)[key]
 	return value, ok
+}
+
+// GetAll returns the underlying map of {{if .Pointer}}pointers to {{end}}{{.Name}}
+// this map must NOT be modified, to change the map safely use the Set and Delete
+// functions and Get the value again
+func (am *{{.Name}}AtomicMap) GetAll() map[string]{{.Pointer}}{{.Subpackage}}{{.Name}} {
+	return am.val.Load().(_{{.Name}}Map)
 }
 
 // Len returns the number of elements in the map
