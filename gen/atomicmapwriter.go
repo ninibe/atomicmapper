@@ -71,7 +71,7 @@ func (am *{{.Name}}AtomicMap) Get(key string) (value {{.Pointer}}{{.Name}}, ok b
 }
 
 // Len returns the number of elements in the map
-func (am *TypeAtomicMap) Len() int {
+func (am *{{.Name}}AtomicMap) Len() int {
 	return len(am.val.Load().(_{{.Name}}Map))
 }
 
